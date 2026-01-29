@@ -1,0 +1,118 @@
+type: custom:plotly-graph
+title: Target Position
+refresh_interval: 0.2
+hours_to_show: current_day
+layout:
+  height: 380
+  margin:
+    l: 40
+    r: 40
+    t: 30
+    b: 50
+  showlegend: true
+  xaxis:
+    title: (mm)
+    dtick: 1000
+    gridcolor: RGBA(200,200,200,0.15)
+    zerolinecolor: RGBA(200,200,200,0.5)
+    type: number
+    fixedrange: true
+    range:
+      - 4000
+      - -4000
+  yaxis:
+    title: distance(mm)
+    dtick: 1000
+    gridcolor: RGBA(200,200,200,0.15)
+    zerolinecolor: RGBA(200,200,200,0.5)
+    scaleanchor: x
+    scaleratio: 1
+    fixedrange: true
+    range:
+      - 0
+      - 6000
+entities:
+  - entity: ""
+    name: target 1
+    marker:
+      size: 15
+      color: "#007bff"
+      line:
+        color: white
+        width: 1
+    line:
+      shape: spline
+      width: 0
+    x:
+      - $ex hass.states["sensor.makerfabs_radar_target_1_x"].state
+    "y":
+      - $ex hass.states["sensor.makerfabs_radar_target_1_y"].state
+  - entity: ""
+    name: target 2
+    marker:
+      size: 15
+      color: "#fd7e14"
+      line:
+        color: white
+        width: 1
+    line:
+      shape: spline
+      width: 0
+    x:
+      - $ex hass.states["sensor.makerfabs_radar_target_2_x"].state
+    "y":
+      - $ex hass.states["sensor.makerfabs_radar_target_2_y"].state
+  - entity: ""
+    name: target 3
+    marker:
+      size: 15
+      color: "#28a745"
+      line:
+        color: white
+        width: 1
+    line:
+      shape: spline
+      width: 0
+    x:
+      - $ex hass.states["sensor.makerfabs_radar_target_3_x"].state
+    "y":
+      - $ex hass.states["sensor.makerfabs_radar_target_3_y"].state
+  - entity: ""
+    name: range
+    mode: lines
+    fill: tonexty
+    fillcolor: rgba(168, 216, 234, 0.1)
+    line:
+      color: rgba(168, 216, 234, 0.5)
+      shape: line
+      width: 1
+      dash: dot
+    x:
+      - 0
+      - $ex 6000 * Math.sin((2 * Math.PI)/360 * 60)
+      - 4000
+      - 3000
+      - 2000
+      - 1000
+      - 0
+      - -1000
+      - -2000
+      - -3000
+      - -4000
+      - $ex -6000 * Math.sin((2 * Math.PI)/360 * 60)
+      - 0
+    "y":
+      - 0
+      - $ex 6000 * Math.cos((2 * Math.PI)/360 * 60)
+      - $ex Math.sqrt( 6000**2 - 4000**2 )
+      - $ex Math.sqrt( 6000**2 - 3000**2 )
+      - $ex Math.sqrt( 6000**2 - 2000**2 )
+      - $ex Math.sqrt( 6000**2 - 1000**2 )
+      - 6000
+      - $ex Math.sqrt( 6000**2 - 1000**2 )
+      - $ex Math.sqrt( 6000**2 - 2000**2 )
+      - $ex Math.sqrt( 6000**2 - 3000**2 )
+      - $ex Math.sqrt( 6000**2 - 4000**2 )
+      - $ex 6000 * Math.cos((2 * Math.PI)/360 * 60)
+      - 0
+raw_plotly_config: true

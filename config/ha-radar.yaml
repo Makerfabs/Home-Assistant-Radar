@@ -1,0 +1,293 @@
+esphome:
+  name: radar
+  friendly_name: Makerfabs Radar
+  min_version: 2025.11.2 # use 2025.11.2
+
+  on_boot:
+    - priority: -100
+      then:
+        - delay: 3s
+        - rtttl.play: 'Beep:d=8,o=5,b=600:c'
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  flash_size: 16MB
+  cpu_frequency: 240MHz
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+# Enable logging
+logger:
+  level: INFO
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "qHBspV+EKzolBYTSvStuTl1OXMxRRjPNOThyQ1PidOE="
+
+ota:
+  - platform: esphome
+    password: "808dcebf08e6d249d866926211e79874="
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Radar Fallback Hotspot"
+    password: "4xxhmzsUWdmp"
+
+captive_portal:
+
+web_server:
+  port: 80
+
+output:
+  - platform: ledc
+    pin: GPIO45
+    id: buzzer_out
+
+rtttl:
+  id: buzzer1
+  output: buzzer_out
+
+light:
+  - platform: esp32_rmt_led_strip
+    rgb_order: GRB
+    pin: GPIO42
+    num_leds: 3
+    chipset: ws2812
+    name: RGB
+
+uart:
+  id: uart_ld2450
+  tx_pin:
+    number: GPIO5
+    mode:
+      input: true
+      pullup: true
+  rx_pin:
+    number: GPIO6
+    mode:
+      input: true
+      pullup: true
+  baud_rate: 256000
+  parity: NONE
+  stop_bits: 1
+
+
+i2c:
+  - id: i2c_bus
+    sda: GPIO38
+    scl: GPIO39
+    # scan: true
+    # frequency: 400kHz
+
+ld2450:
+  id: ld2450_radar
+  uart_id: uart_ld2450
+
+binary_sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    has_target:
+      name: Presence
+    has_moving_target:
+      name: Moving Target
+    has_still_target:
+      name: Still Target
+# number:
+#   - platform: ld2450
+#     ld2450_id: ld2450_radar
+#     presence_timeout:
+#       name: "Timeout"
+#     zone_1:
+#       x1:
+#         name: Zone-1 X1
+#       y1:
+#         name: Zone-1 Y1
+#       x2:
+#         name: Zone-1 X2
+#       y2:
+#         name: Zone-1 Y2
+#     zone_2:
+#       x1:
+#         name: Zone-2 X1
+#       y1:
+#         name: Zone-2 Y1
+#       x2:
+#         name: Zone-2 X2
+#       y2:
+#         name: Zone-2 Y2
+#     zone_3:
+#       x1:
+#         name: Zone-3 X1
+#       y1:
+#         name: Zone-3 Y1
+#       x2:
+#         name: Zone-3 X2
+#       y2:
+#         name: Zone-3 Y2
+switch:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    bluetooth:
+      name: "Bluetooth"
+    multi_target:
+      name: "Multi Target Tracking"
+
+select:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    baud_rate:
+      name: "Baud rate"
+    zone_type:
+      name: "Zone Type"
+
+button:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    factory_reset:
+      name: "LD2450 Factory Reset"
+      entity_category: "config"
+    restart:
+      name: "LD2450 Restart"
+      entity_category: "config"
+
+text_sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    version:
+      name: "LD2450 Firmware"
+    mac_address:
+      name: "LD2450 BT MAC"
+    target_1:
+      direction:
+        name: "Target-1 Direction"
+    target_2:
+      direction:
+        name: "Target-2 Direction"
+    target_3:
+      direction:
+        name: "Target-3 Direction"
+
+sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    target_count:
+      name: Presence Target Count
+      id: target_count
+    still_target_count:
+      name: Still Target Count
+      id: still_target_count
+    moving_target_count:
+      name: Moving Target Count
+      id: moving_target_count
+    target_1:
+      x:
+        name: Target-1 X
+        id: target_1_x
+      y:
+        name: Target-1 Y
+        id: target_1_y
+      speed:
+        name: Target-1 Speed
+        id: target_1_speed
+      angle:
+        name: Target-1 Angle
+        id: target_1_angle
+      distance:
+        name: Target-1 Distance
+        id: target_1_distance
+        # on_value: 
+        #   then:
+        #     - lambda: 'ESP_LOGI("target_distance", "Distance: %f", id(target_1_distance).state);'
+
+      resolution:
+        name: Target-1 Resolution
+        id: target_1_resolution
+    target_2:
+      x:
+        name: Target-2 X
+        id: target_2_x
+      y:
+        name: Target-2 Y
+        id: target_2_y
+      speed:
+        name: Target-2 Speed
+        id: target_2_speed
+      angle:
+        name: Target-2 Angle
+        id: target_2_angle
+      distance:
+        name: Target-2 Distance
+        id: target_2_distance
+      resolution:
+        name: Target-2 Resolution
+        id: target_2_resolution
+    target_3:
+      x:
+        name: Target-3 X
+        id: target_3_x
+      y:
+        name: Target-3 Y
+        id: target_3_y
+      speed:
+        name: Target-3 Speed
+        id: target_3_speed
+      angle:
+        name: Target-3 Angle
+        id: target_3_angle
+      distance:
+        name: Target-3 Distance
+        id: target_3_distance
+      resolution:
+        name: Target-3 Resolution
+        id: target_3_resolution
+    # zone_1:
+    #   target_count:
+    #     name: Zone-1 All Target Count
+    #     id: zone_1_target_count
+    #   still_target_count:
+    #     name: Zone-1 Still Target Count
+    #     id: zone_1_still_target_count
+    #   moving_target_count:
+    #     name: Zone-1 Moving Target Count
+    #     id: zone_1_moving_target_count
+    # zone_2:
+    #   target_count:
+    #     name: Zone-2 All Target Count
+    #     id: zone_2_target_count
+    #   still_target_count:
+    #     name: Zone-2 Still Target Count
+    #     id: zone_2_still_target_count
+    #   moving_target_count:
+    #     name: Zone-2 Moving Target Count
+    #     id: zone_2_moving_target_count
+    # zone_3:
+    #   target_count:
+    #     name: Zone-3 All Target Count
+    #     id: zone_3_target_count
+    #   still_target_count:
+    #     name: Zone-3 Still Target Count
+    #     id: zone_3_still_target_count
+    #   moving_target_count:
+    #     name: Zone-3 Moving Target Count
+    #     id: zone_3_moving_target_count
+  # - platform: aht10
+  #   variant: AHT10
+  #   temperature:
+  #     name: "Temperature"
+  #   humidity:
+  #     name: "Humidity"
+  #   update_interval: 10s
